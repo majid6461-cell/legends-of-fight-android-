@@ -17,7 +17,7 @@ var ui_theme: Theme = null
 const SAVE_PATH := "user://legends_save.cfg"
 
 const FIGHTERS: Array = [
-	{"fa": "رضا «پتک»", "en": "Reza 'Hammer'", "sfa": "مبارز خیابانی", "sen": "Street Brawler", "pow": 8, "spd": 5, "def": 6, "rch": 1.0, "col": Color("c0392b"), "skin": Color("e0ac69"), "hair": Color("1a1a1a")},
+	{"fa": "رضا «پتک»", "en": "Reza 'Hammer'", "sfa": "مبارز خیابانی", "sen": "Street Brawler", "model": "robot", "pow": 8, "spd": 5, "def": 6, "rch": 1.0, "col": Color("c0392b"), "skin": Color("e0ac69"), "hair": Color("1a1a1a")},
 	{"fa": "استاد چن", "en": "Master Chen", "sfa": "استاد کونگ‌فو", "sen": "Kung-Fu Master", "pow": 6, "spd": 8, "def": 6, "rch": 1.0, "col": Color("f1c40f"), "skin": Color("f0c8a0"), "hair": Color("111111")},
 	{"fa": "کنجی", "en": "Kenji", "sfa": "کاراته‌کار", "sen": "Karateka", "pow": 7, "spd": 7, "def": 6, "rch": 1.0, "col": Color("ecf0f1"), "skin": Color("e8b88a"), "hair": Color("222222")},
 	{"fa": "مارکوس «مشت‌آهنین»", "en": "Marcus 'Iron Fist'", "sfa": "بوکسور", "sen": "Boxer", "pow": 9, "spd": 6, "def": 5, "rch": 0.9, "col": Color("2980b9"), "skin": Color("8d5524"), "hair": Color("0a0a0a")},

@@ -4,6 +4,8 @@ extends Node3D
 
 signal died
 
+const RobotData := preload("res://scripts/robot_data.gd")
+
 const ATTACKS := {
 	"p1": {"limb": "arm_r", "su": 0.06, "ac": 0.09, "rc": 0.12, "dmg": 4.0, "rng": 1.2, "kb": 1.2, "stun": 0.22, "snd": "punch"},
 	"p2": {"limb": "arm_l", "su": 0.06, "ac": 0.09, "rc": 0.12, "dmg": 5.0, "rng": 1.2, "kb": 1.4, "stun": 0.22, "snd": "punch"},
@@ -48,6 +50,9 @@ var spd: float = 1.0
 var dmgm: float = 1.0
 var defm: float = 1.0
 var ph: float = 0.0
+var upper_y: float = 0.85
+var arm_rest: float = 0.0
+var arm_zm: float = 1.0
 
 
 # ------------------------------------------------------------------ building
@@ -97,6 +102,12 @@ func setup(data: Dictionary, player: int, sc: float = 1.0) -> void:
 	dmgm = 0.8 + float(d.pow) * 0.04
 	defm = 0.8 + float(d.def) * 0.04
 	scale = Vector3.ONE * sc
+	upper_y = 0.85
+	arm_rest = 0.0
+	arm_zm = 1.0
+	if d.has("model"):
+		_build_robot()
+		return
 	var suit: Color = d.col
 	var skin: Color = d.skin
 	var hair: Color = d.hair
@@ -128,6 +139,73 @@ func setup(data: Dictionary, player: int, sc: float = 1.0) -> void:
 		_mi(pv, _cap(0.11, 0.85), pants, Vector3(0, -0.4, 0))
 		_mi(pv, _box(Vector3(0.16, 0.1, 0.3)), Color(0.1, 0.1, 0.1), Vector3(0, -0.82, -0.08))
 		parts[side] = pv
+	body.rotation.y = PI if preview else -PI / 2.0 * float(facing)
+
+
+# ------------------------------------------------------------------ imported 3D robot (Reza)
+func _robot_mat(n: String, tint: bool) -> StandardMaterial3D:
+	var m := StandardMaterial3D.new()
+	var c: Color = Color(0.553, 0.0, 0.005)
+	m.metallic = 0.3
+	m.roughness = 0.45
+	match n:
+		"BODY2":
+			m.metallic = 0.35
+			m.roughness = 0.4
+		"JACKET.002":
+			c = Color(0.10, 0.36, 0.41)
+			m.metallic = 0.0
+			m.roughness = 0.6
+		"LOGO":
+			c = Color(0.62, 0.02, 0.02)
+		"LOGO.002":
+			c = Color(0.41, 0.0, 0.003)
+		"METAL":
+			m.metallic = 0.6
+			m.roughness = 0.3
+		"GLOW":
+			c = Color(0.0, 0.72, 1.0)
+			m.emission_enabled = true
+			m.emission = c
+			m.emission_energy_multiplier = 3.0
+	if tint and n != "GLOW":
+		c = Color(c.b, c.g, c.r)
+	m.albedo_color = c
+	return m
+
+
+func _build_robot() -> void:
+	var tint: bool = pid == 2 and Game.p1 == Game.p2
+	body = Node3D.new()
+	add_child(body)
+	upper = Node3D.new()
+	upper.position = Vector3(0, RobotData.HIP_Y, 0)
+	body.add_child(upper)
+	upper_y = RobotData.HIP_Y
+	arm_rest = 0.5
+	arm_zm = 0.0
+	for side in ["arm_r", "arm_l"]:
+		var pv := Node3D.new()
+		pv.position = RobotData.PIVOTS[side]
+		upper.add_child(pv)
+		parts[side] = pv
+	for side in ["leg_r", "leg_l"]:
+		var pv := Node3D.new()
+		pv.position = RobotData.PIVOTS[side]
+		body.add_child(pv)
+		parts[side] = pv
+	var mats: Dictionary = {}
+	for p in RobotData.PARTS:
+		var mesh: Mesh = load(String(p[2])) as Mesh
+		if mesh == null:
+			continue
+		if not mats.has(p[1]):
+			mats[p[1]] = _robot_mat(String(p[1]), tint)
+		var mi := MeshInstance3D.new()
+		mi.mesh = mesh
+		mi.material_override = mats[p[1]]
+		var parent: Node3D = upper if p[0] == "torso" else parts[p[0]]
+		parent.add_child(mi)
 	body.rotation.y = PI if preview else -PI / 2.0 * float(facing)
 
 
@@ -225,12 +303,12 @@ func _process(delta: float) -> void:
 		ll = 0.9
 		ar = 1.2
 		al = 1.2
-	parts["arm_r"].rotation = Vector3(ar, 0.0, -0.25)
-	parts["arm_l"].rotation = Vector3(al, 0.0, 0.25)
+	parts["arm_r"].rotation = Vector3(ar - arm_rest, 0.0, -0.25 * arm_zm)
+	parts["arm_l"].rotation = Vector3(al - arm_rest, 0.0, 0.25 * arm_zm)
 	parts["leg_r"].rotation.x = lr
 	parts["leg_l"].rotation.x = ll
 	upper.rotation.x = lerpf(upper.rotation.x, lean, minf(1.0, delta * 20.0))
-	upper.position.y = 0.85 - crouch + bob
+	upper.position.y = upper_y - crouch + bob
 	var ko: bool = state == "ko"
 	body.rotation.x = lerpf(body.rotation.x, 1.45 if ko else 0.0, minf(1.0, delta * 5.0))
 	body.position.y = lerpf(body.position.y, 0.25 if ko else 0.0, minf(1.0, delta * 5.0))
