@@ -1,0 +1,6 @@
+1) Upload every file/folder here to GitHub (Add file > Upload files) EXCEPT this note.
+2) In the repo: Add file > Create new file. In the name box type exactly:
+   .github/workflows/build-android.yml
+   (typing "/" creates the folders). Paste the full content of build-android.yml from this folder. Commit.
+3) Then you may delete build-android.yml from the repo root.
+4) Actions tab > Build Android APK > Run workflow.
